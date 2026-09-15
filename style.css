@@ -115,6 +115,10 @@ body {
   font-size: 26px;
 }
 
+.icon-button.red {
+  background: var(--accent-red);
+}
+
 /* --- Card --- */
 
 .rom-card {

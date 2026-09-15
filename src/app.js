@@ -15,6 +15,26 @@ function formatSize(sizeBytes) {
   return `${sizeBytes} bytes (${(sizeBytes / 1024).toFixed(0)} KB)`;
 }
 
+const DOWNLOAD_ICON_SVG = `
+  <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3v12" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M4 19h16" />
+  </svg>
+`;
+
+const TRASH_ICON_SVG = `
+  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 7h16" />
+    <path d="M9 7V4h6v3" />
+    <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+  </svg>
+`;
+
 export class App {
   constructor(root) {
     this.root = root;
@@ -60,9 +80,16 @@ export class App {
     const generateButton = document.createElement("button");
     generateButton.className = "icon-button orange";
     generateButton.title = "Gerar BIN";
-    generateButton.textContent = "↻";
+    generateButton.innerHTML = DOWNLOAD_ICON_SVG;
     generateButton.addEventListener("click", () => this._onGenerateBin());
     sidebar.appendChild(generateButton);
+
+    const clearButton = document.createElement("button");
+    clearButton.className = "icon-button red";
+    clearButton.title = "Limpar ROMs importadas";
+    clearButton.innerHTML = TRASH_ICON_SVG;
+    clearButton.addEventListener("click", () => this._onClearRoms());
+    sidebar.appendChild(clearButton);
 
     const helpLink = document.createElement("a");
     helpLink.className = "icon-button gray";
@@ -134,6 +161,14 @@ export class App {
 
   _onSwapRoms(i, j) {
     [this.roms[i], this.roms[j]] = [this.roms[j], this.roms[i]];
+    this._rebuildCards();
+  }
+
+  _onClearRoms() {
+    if (this.roms.length === 0) return;
+    if (!window.confirm(`Remover as ${this.roms.length} ROM(s) importada(s)?`)) return;
+    this.roms = [];
+    this.log("Todas as ROMs foram removidas.");
     this._rebuildCards();
   }
 
