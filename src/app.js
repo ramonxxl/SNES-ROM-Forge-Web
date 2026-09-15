@@ -3,7 +3,7 @@
  */
 
 import { SNESRom } from "./core/rom.js";
-import { merge } from "./core/merger.js";
+import { merge, resolveSlotSizes } from "./core/merger.js";
 import { ValidationError } from "./core/validator.js";
 import { DEFAULT_FLASH_PROFILE, FLASH_PROFILES } from "./devices/flashProfiles.js";
 import { createRomCard, setCardBoxart } from "./ui/romCard.js";
@@ -12,6 +12,10 @@ import { buildCandidateFilenames, fetchBoxart } from "./ui/boxart.js";
 
 function formatSize(sizeBytes) {
   return `${sizeBytes} bytes (${(sizeBytes / 1024).toFixed(0)} KB)`;
+}
+
+function formatMB(sizeBytes) {
+  return `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 const DOWNLOAD_ICON_SVG = `
@@ -70,6 +74,8 @@ export class App {
     this.cardsRow.className = "cards-row";
     this.cardsScroll.appendChild(this.cardsRow);
     leftColumn.appendChild(this.cardsScroll);
+
+    leftColumn.appendChild(this._buildOccupancyBar());
 
     this.logEl = document.createElement("div");
     this.logEl.className = "log";
@@ -141,11 +147,51 @@ export class App {
     flashSelect.addEventListener("change", () => {
       this.flashProfile = FLASH_PROFILES[Number(flashSelect.value)];
       this.log(`Flash selecionada: ${this.flashProfile.name}.`);
+      this._updateOccupancy();
     });
     flashControl.appendChild(flashSelect);
 
     topbar.appendChild(flashControl);
     return topbar;
+  }
+
+  _buildOccupancyBar() {
+    const occupancy = document.createElement("div");
+    occupancy.className = "occupancy";
+
+    const header = document.createElement("div");
+    header.className = "occupancy__header";
+
+    const label = document.createElement("span");
+    label.textContent = "Ocupação da flash";
+    header.appendChild(label);
+
+    this.occupancyValueEl = document.createElement("span");
+    this.occupancyValueEl.className = "occupancy__value";
+    header.appendChild(this.occupancyValueEl);
+
+    occupancy.appendChild(header);
+
+    const track = document.createElement("div");
+    track.className = "occupancy__track";
+
+    this.occupancyFillEl = document.createElement("div");
+    this.occupancyFillEl.className = "occupancy__fill";
+    track.appendChild(this.occupancyFillEl);
+
+    occupancy.appendChild(track);
+    return occupancy;
+  }
+
+  _updateOccupancy() {
+    const capacity = this.flashProfile.capacityBytes;
+    const usedBytes = resolveSlotSizes(this.roms, capacity).reduce((a, b) => a + b, 0);
+    const ratio = capacity > 0 ? usedBytes / capacity : 0;
+    const percent = Math.round(ratio * 100);
+
+    this.occupancyFillEl.style.width = `${Math.min(ratio, 1) * 100}%`;
+    this.occupancyFillEl.classList.toggle("occupancy__fill--over", usedBytes > capacity);
+    this.occupancyValueEl.textContent = `${formatMB(usedBytes)} / ${formatMB(capacity)} (${percent}%)`;
   }
 
   log(text) {
@@ -186,6 +232,8 @@ export class App {
 
     const dropZone = createDropZone((files) => this._onFilesSelected(files));
     this.cardsRow.appendChild(dropZone);
+
+    this._updateOccupancy();
   }
 
   async _fetchBoxartFor(rom, cardHandle) {

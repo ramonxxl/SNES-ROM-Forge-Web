@@ -112,6 +112,42 @@ body {
   padding: 4px;
 }
 
+.occupancy {
+  flex: 0 0 auto;
+  margin: 4px 4px 8px;
+}
+
+.occupancy__header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.occupancy__value {
+  font-family: Consolas, monospace;
+}
+
+.occupancy__track {
+  height: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.occupancy__fill {
+  height: 100%;
+  background: var(--accent-green);
+  border-radius: 5px 0 0 5px;
+  transition: width 0.2s ease;
+}
+
+.occupancy__fill--over {
+  background: var(--accent-red);
+}
+
 .log {
   height: 140px;
   margin: 0 4px 4px;
