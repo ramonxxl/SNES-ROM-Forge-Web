@@ -13,8 +13,8 @@
   --accent-red: #ef4444;
   --accent-gray: #5b6272;
 
-  --card-width: 190px;
-  --banner-height: 90px;
+  --card-width: 240px;
+  --banner-height: 260px;
 }
 
 * {
@@ -84,11 +84,11 @@ body {
 }
 
 .icon-button {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border: none;
-  border-radius: 12px;
-  font-size: 26px;
+  border-radius: 14px;
+  font-size: 30px;
   cursor: pointer;
   color: white;
 }
@@ -125,27 +125,28 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 12px;
   color: white;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   text-align: center;
   overflow: hidden;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
 }
 
 .rom-card__remove {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
   border: none;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.55);
   color: white;
-  font-size: 11px;
+  font-size: 15px;
   cursor: pointer;
   line-height: 1;
 }
@@ -157,30 +158,30 @@ body {
 .rom-card__info {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 6px 8px;
-  padding: 8px 10px 0;
+  gap: 10px 8px;
+  padding: 14px 14px 0;
   align-items: center;
 }
 
 .rom-card__label {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .badge {
   justify-self: end;
   color: white;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
   border-radius: 5px;
-  padding: 2px 8px;
+  padding: 3px 10px;
 }
 
 /* --- Drop zone --- */
 
 .drop-zone {
   width: var(--card-width);
-  min-height: 230px;
+  min-height: 390px;
   flex: 0 0 auto;
   border: 2px dashed var(--border);
   border-radius: 10px;
@@ -188,10 +189,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   text-align: center;
-  padding: 12px;
+  padding: 16px;
 }
 
 .drop-zone.active {
@@ -200,11 +201,12 @@ body {
 }
 
 .drop-zone__icon {
-  font-size: 36px;
+  font-size: 48px;
 }
 
 .drop-zone__text {
   color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* --- Swap arrow --- */
@@ -212,12 +214,12 @@ body {
 .swap-button {
   flex: 0 0 auto;
   align-self: center;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 19px;
   cursor: pointer;
 }
 

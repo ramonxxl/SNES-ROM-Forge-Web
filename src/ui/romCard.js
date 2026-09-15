@@ -91,10 +91,15 @@ export function createRomCard(rom, onRemove) {
  * Substitui o banner colorido pela capa real do jogo.
  * Só esconde o texto do título — nunca mexe nos filhos do banner (como o
  * botão de remover) via innerHTML/textContent, pra não apagá-los sem querer.
+ * Define cada sub-propriedade do background individualmente (nunca o
+ * shorthand `background`), pra não resetar o `background-size`/`position`
+ * herdados da classe CSS e deixar a capa cortada/posicionada errado.
  */
 export function setCardBoxart(cardHandle, imageUrl) {
   const { banner, titleSpan } = cardHandle;
   titleSpan.style.display = "none";
-  banner.style.background = "none";
   banner.style.backgroundImage = `url("${imageUrl}")`;
+  banner.style.backgroundSize = "cover";
+  banner.style.backgroundPosition = "center";
+  banner.style.backgroundRepeat = "no-repeat";
 }
