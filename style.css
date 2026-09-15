@@ -130,6 +130,7 @@ body {
 }
 
 .occupancy__track {
+  display: flex;
   height: 10px;
   background: var(--bg-panel);
   border: 1px solid var(--border);
@@ -137,14 +138,22 @@ body {
   overflow: hidden;
 }
 
-.occupancy__fill {
+.occupancy__fill-rom,
+.occupancy__fill-padding {
   height: 100%;
-  background: var(--accent-green);
-  border-radius: 5px 0 0 5px;
   transition: width 0.2s ease;
 }
 
-.occupancy__fill--over {
+.occupancy__fill-rom {
+  background: var(--accent-green);
+}
+
+.occupancy__fill-padding {
+  background: var(--accent-orange);
+}
+
+.occupancy__track--over .occupancy__fill-rom,
+.occupancy__track--over .occupancy__fill-padding {
   background: var(--accent-red);
 }
 

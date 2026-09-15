@@ -172,26 +172,48 @@ export class App {
 
     occupancy.appendChild(header);
 
-    const track = document.createElement("div");
-    track.className = "occupancy__track";
+    this.occupancyTrackEl = document.createElement("div");
+    this.occupancyTrackEl.className = "occupancy__track";
 
-    this.occupancyFillEl = document.createElement("div");
-    this.occupancyFillEl.className = "occupancy__fill";
-    track.appendChild(this.occupancyFillEl);
+    this.occupancyRomFillEl = document.createElement("div");
+    this.occupancyRomFillEl.className = "occupancy__fill-rom";
+    this.occupancyTrackEl.appendChild(this.occupancyRomFillEl);
 
-    occupancy.appendChild(track);
+    this.occupancyPaddingFillEl = document.createElement("div");
+    this.occupancyPaddingFillEl.className = "occupancy__fill-padding";
+    this.occupancyTrackEl.appendChild(this.occupancyPaddingFillEl);
+
+    occupancy.appendChild(this.occupancyTrackEl);
     return occupancy;
   }
 
+  /**
+   * O quanto vai pra flash (slotBytes) é maior que a soma dos arquivos de ROM
+   * (rawRomBytes): slots são arredondados pra potência de 2 e, quando sobra
+   * posição de endereço na placa, uma ROM se repete pra preenchê-la (ver
+   * resolveSlotSizes em merger.js). Mostra os dois valores separados pra não
+   * parecer que a flash "encheu" só com os arquivos importados.
+   */
   _updateOccupancy() {
     const capacity = this.flashProfile.capacityBytes;
-    const usedBytes = resolveSlotSizes(this.roms, capacity).reduce((a, b) => a + b, 0);
-    const ratio = capacity > 0 ? usedBytes / capacity : 0;
-    const percent = Math.round(ratio * 100);
+    const rawRomBytes = this.roms.reduce((total, rom) => total + rom.romSizeBytes, 0);
+    const slotBytes = resolveSlotSizes(this.roms, capacity).reduce((a, b) => a + b, 0);
+    const paddingBytes = slotBytes - rawRomBytes;
+    const over = slotBytes > capacity;
 
-    this.occupancyFillEl.style.width = `${Math.min(ratio, 1) * 100}%`;
-    this.occupancyFillEl.classList.toggle("occupancy__fill--over", usedBytes > capacity);
-    this.occupancyValueEl.textContent = `${formatMB(usedBytes)} / ${formatMB(capacity)} (${percent}%)`;
+    const visibleRatio = capacity > 0 ? Math.min(slotBytes / capacity, 1) : 0;
+    const romShare = slotBytes > 0 ? rawRomBytes / slotBytes : 0;
+    const paddingShare = slotBytes > 0 ? paddingBytes / slotBytes : 0;
+
+    this.occupancyRomFillEl.style.width = `${romShare * visibleRatio * 100}%`;
+    this.occupancyPaddingFillEl.style.width = `${paddingShare * visibleRatio * 100}%`;
+    this.occupancyTrackEl.classList.toggle("occupancy__track--over", over);
+
+    const breakdown = `${formatMB(rawRomBytes)} de ROMs + ${formatMB(paddingBytes)} de alinhamento`;
+    const total = over
+      ? `${formatMB(slotBytes)} / ${formatMB(capacity)} (excede em ${formatMB(slotBytes - capacity)})`
+      : `${formatMB(slotBytes)} / ${formatMB(capacity)} (${Math.round((slotBytes / capacity) * 100)}%)`;
+    this.occupancyValueEl.textContent = `${breakdown} = ${total}`;
   }
 
   log(text) {
