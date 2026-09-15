@@ -57,6 +57,11 @@ export class App {
     const leftColumn = document.createElement("div");
     leftColumn.className = "left-column";
 
+    const sectionTitle = document.createElement("h2");
+    sectionTitle.className = "section-title";
+    sectionTitle.textContent = "ROMs selecionadas";
+    leftColumn.appendChild(sectionTitle);
+
     this.cardsScroll = document.createElement("div");
     this.cardsScroll.className = "cards-scroll";
 
