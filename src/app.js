@@ -39,6 +39,7 @@ export class App {
     this.root = root;
     this.roms = [];
     this.flashProfile = DEFAULT_FLASH_PROFILE;
+    this._dragIndex = null;
 
     this._buildLayout();
   }
@@ -157,17 +158,30 @@ export class App {
 
     this.roms.forEach((rom, index) => {
       const cardHandle = createRomCard(rom, () => this._onRemoveRom(index));
-      this.cardsRow.appendChild(cardHandle.element);
-      this._fetchBoxartFor(rom, cardHandle);
+      const card = cardHandle.element;
+      card.draggable = true;
 
-      if (index < this.roms.length - 1) {
-        const swapButton = document.createElement("button");
-        swapButton.className = "swap-button";
-        swapButton.type = "button";
-        swapButton.textContent = "⇄";
-        swapButton.addEventListener("click", () => this._onSwapRoms(index, index + 1));
-        this.cardsRow.appendChild(swapButton);
-      }
+      card.addEventListener("dragstart", (event) => {
+        this._dragIndex = index;
+        card.classList.add("rom-card--dragging");
+        event.dataTransfer.effectAllowed = "move";
+      });
+      card.addEventListener("dragend", () => {
+        card.classList.remove("rom-card--dragging");
+        this._dragIndex = null;
+      });
+      card.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      });
+      card.addEventListener("drop", (event) => {
+        event.preventDefault();
+        if (this._dragIndex === null || this._dragIndex === index) return;
+        this._onReorderRoms(this._dragIndex, index);
+      });
+
+      this.cardsRow.appendChild(card);
+      this._fetchBoxartFor(rom, cardHandle);
     });
 
     const dropZone = createDropZone((files) => this._onFilesSelected(files));
@@ -199,8 +213,9 @@ export class App {
     this._rebuildCards();
   }
 
-  _onSwapRoms(i, j) {
-    [this.roms[i], this.roms[j]] = [this.roms[j], this.roms[i]];
+  _onReorderRoms(fromIndex, toIndex) {
+    const [rom] = this.roms.splice(fromIndex, 1);
+    this.roms.splice(toIndex, 0, rom);
     this._rebuildCards();
   }
 

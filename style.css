@@ -176,6 +176,11 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding-bottom: 10px;
+  cursor: grab;
+}
+
+.rom-card--dragging {
+  opacity: 0.4;
 }
 
 .rom-card__banner {
@@ -269,24 +274,6 @@ body {
 .drop-zone__text {
   color: var(--text-muted);
   font-size: 14px;
-}
-
-/* --- Swap arrow --- */
-
-.swap-button {
-  flex: 0 0 auto;
-  align-self: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 19px;
-  cursor: pointer;
-}
-
-.swap-button:hover {
-  color: var(--text);
 }
 
 select {
