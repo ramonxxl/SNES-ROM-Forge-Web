@@ -5,10 +5,9 @@
 import { SNESRom } from "./core/rom.js";
 import { merge } from "./core/merger.js";
 import { ValidationError } from "./core/validator.js";
-import { DEFAULT_FLASH_PROFILE } from "./devices/flashProfiles.js";
+import { DEFAULT_FLASH_PROFILE, FLASH_PROFILES } from "./devices/flashProfiles.js";
 import { createRomCard, setCardBoxart } from "./ui/romCard.js";
 import { createDropZone } from "./ui/dropZone.js";
-import { openSettingsDialog } from "./ui/settingsDialog.js";
 import { buildCandidateFilenames, fetchBoxart } from "./ui/boxart.js";
 
 function formatSize(sizeBytes) {
@@ -50,6 +49,11 @@ export class App {
     const app = document.createElement("div");
     app.id = "app";
 
+    app.appendChild(this._buildTopbar());
+
+    const main = document.createElement("div");
+    main.className = "main";
+
     const leftColumn = document.createElement("div");
     leftColumn.className = "left-column";
 
@@ -65,17 +69,10 @@ export class App {
     this.logEl.className = "log";
     leftColumn.appendChild(this.logEl);
 
-    app.appendChild(leftColumn);
+    main.appendChild(leftColumn);
 
     const sidebar = document.createElement("div");
     sidebar.className = "sidebar";
-
-    const settingsButton = document.createElement("button");
-    settingsButton.className = "icon-button blue";
-    settingsButton.title = "Configurações";
-    settingsButton.textContent = "⚙";
-    settingsButton.addEventListener("click", () => this._onOpenSettings());
-    sidebar.appendChild(settingsButton);
 
     const generateButton = document.createElement("button");
     generateButton.className = "icon-button orange";
@@ -100,11 +97,49 @@ export class App {
     helpLink.rel = "noopener";
     sidebar.appendChild(helpLink);
 
-    app.appendChild(sidebar);
+    main.appendChild(sidebar);
+    app.appendChild(main);
 
     this.root.appendChild(app);
 
     this._rebuildCards();
+  }
+
+  _buildTopbar() {
+    const topbar = document.createElement("div");
+    topbar.className = "topbar";
+
+    const title = document.createElement("div");
+    title.className = "topbar__title";
+    title.textContent = "SNES ROM Forge";
+    topbar.appendChild(title);
+
+    const flashControl = document.createElement("div");
+    flashControl.className = "topbar__flash";
+
+    const flashLabel = document.createElement("label");
+    flashLabel.className = "topbar__flash-label";
+    flashLabel.textContent = "Capacidade da flash";
+    flashLabel.htmlFor = "flash-profile-select";
+    flashControl.appendChild(flashLabel);
+
+    const flashSelect = document.createElement("select");
+    flashSelect.id = "flash-profile-select";
+    FLASH_PROFILES.forEach((profile, index) => {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = profile.name;
+      if (profile.name === this.flashProfile.name) option.selected = true;
+      flashSelect.appendChild(option);
+    });
+    flashSelect.addEventListener("change", () => {
+      this.flashProfile = FLASH_PROFILES[Number(flashSelect.value)];
+      this.log(`Flash selecionada: ${this.flashProfile.name}.`);
+    });
+    flashControl.appendChild(flashSelect);
+
+    topbar.appendChild(flashControl);
+    return topbar;
   }
 
   log(text) {
@@ -170,14 +205,6 @@ export class App {
     this.roms = [];
     this.log("Todas as ROMs foram removidas.");
     this._rebuildCards();
-  }
-
-  async _onOpenSettings() {
-    const chosen = await openSettingsDialog(this.flashProfile);
-    if (chosen) {
-      this.flashProfile = chosen;
-      this.log(`Flash selecionada: ${chosen.name}.`);
-    }
   }
 
   async _onGenerateBin() {
