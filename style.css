@@ -84,6 +84,7 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: 0 4px;
 }
 
@@ -99,16 +100,16 @@ body {
 
 .cards-scroll {
   flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .cards-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 14px;
   padding: 4px;
-  height: 100%;
 }
 
 .log {
