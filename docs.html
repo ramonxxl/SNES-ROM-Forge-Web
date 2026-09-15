@@ -104,24 +104,29 @@
         </p>
         <p>
           O SNES ROM Forge calcula, a partir de quantos jogos você importou, quantas dessas
-          posições usar e qual o tamanho de slot correspondente:
+          posições usar e qual o tamanho de slot correspondente. As 4 posições da flash
+          (4 MB ÷ 4 = 1 MB cada) são sempre preenchidas por inteiro — nunca sobra uma em branco:
         </p>
 
         <div class="docs-diagram" aria-hidden="true">
           <div class="docs-diagram__row">
-            <div class="docs-diagram__slot" style="flex:1">4 jogos → slot de 1 MB cada</div>
-            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
-            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
-            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1.4">4 jogos → slot de 1 MB cada</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 1 — 1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 2 — 1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 3 — 1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 4 — 1 MB</div>
           </div>
           <div class="docs-diagram__row">
-            <div class="docs-diagram__slot" style="flex:2">2 jogos → slot de 2 MB cada</div>
-            <div class="docs-diagram__slot" style="flex:2">2 MB</div>
+            <div class="docs-diagram__slot" style="flex:1.4">2 jogos → slot de 2 MB cada</div>
+            <div class="docs-diagram__slot" style="flex:2">Jogo 1 — 2 MB</div>
+            <div class="docs-diagram__slot" style="flex:2">Jogo 2 — 2 MB</div>
           </div>
           <div class="docs-diagram__row">
-            <div class="docs-diagram__slot" style="flex:2">3 jogos → um deles se repete</div>
-            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
-            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1.4">3 jogos → um deles repete pra ocupar a 4ª posição</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 1 — 1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 2 — 1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 3 — 1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">Jogo 3 (repete) — 1 MB</div>
           </div>
         </div>
 
