@@ -46,8 +46,12 @@ export function createRomCard(rom, onRemove) {
   const banner = document.createElement("div");
   banner.className = "rom-card__banner";
   banner.style.background = `var(${bannerColorVar(rom.title || rom.filename)})`;
-  banner.textContent = rom.title || rom.filename;
   card.appendChild(banner);
+
+  const titleSpan = document.createElement("span");
+  titleSpan.className = "rom-card__title";
+  titleSpan.textContent = rom.title || rom.filename;
+  banner.appendChild(titleSpan);
 
   const removeButton = document.createElement("button");
   removeButton.className = "rom-card__remove";
@@ -80,17 +84,17 @@ export function createRomCard(rom, onRemove) {
 
   card.appendChild(info);
 
-  return { element: card, banner };
+  return { element: card, banner, titleSpan, removeButton };
 }
 
-/** Substitui o banner colorido pela capa real do jogo. */
+/**
+ * Substitui o banner colorido pela capa real do jogo.
+ * Só esconde o texto do título — nunca mexe nos filhos do banner (como o
+ * botão de remover) via innerHTML/textContent, pra não apagá-los sem querer.
+ */
 export function setCardBoxart(cardHandle, imageUrl) {
-  const { banner } = cardHandle;
-  banner.textContent = "";
+  const { banner, titleSpan } = cardHandle;
+  titleSpan.style.display = "none";
   banner.style.background = "none";
   banner.style.backgroundImage = `url("${imageUrl}")`;
-
-  // o botão de remover precisa continuar visível por cima da capa
-  const removeButton = banner.querySelector(".rom-card__remove");
-  if (removeButton) banner.appendChild(removeButton);
 }
