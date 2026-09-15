@@ -91,6 +91,11 @@ body {
   font-size: 30px;
   cursor: pointer;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .icon-button:hover {
@@ -103,6 +108,11 @@ body {
 
 .icon-button.orange {
   background: var(--accent-orange);
+}
+
+.icon-button.gray {
+  background: var(--accent-gray);
+  font-size: 26px;
 }
 
 /* --- Card --- */

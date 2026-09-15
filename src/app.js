@@ -64,6 +64,15 @@ export class App {
     generateButton.addEventListener("click", () => this._onGenerateBin());
     sidebar.appendChild(generateButton);
 
+    const helpLink = document.createElement("a");
+    helpLink.className = "icon-button gray";
+    helpLink.title = "Ajuda / Como usar";
+    helpLink.textContent = "?";
+    helpLink.href = "docs.html";
+    helpLink.target = "_blank";
+    helpLink.rel = "noopener";
+    sidebar.appendChild(helpLink);
+
     app.appendChild(sidebar);
 
     this.root.appendChild(app);

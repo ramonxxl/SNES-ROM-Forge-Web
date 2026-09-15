@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SNES ROM Forge — Ajuda</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="docs.css" />
+  </head>
+  <body class="docs-body">
+    <header class="docs-header">
+      <a class="docs-back" href="index.html">← Voltar pro app</a>
+      <h1>SNES ROM Forge</h1>
+      <p class="docs-subtitle">Merge de ROMs SNES no navegador, sem servidor — guia rápido</p>
+    </header>
+
+    <nav class="docs-tabs" role="tablist">
+      <button class="docs-tab active" data-tab="overview" role="tab" aria-selected="true">Visão geral</button>
+      <button class="docs-tab" data-tab="usage" role="tab" aria-selected="false">Como usar</button>
+      <button class="docs-tab" data-tab="how-it-works" role="tab" aria-selected="false">Como funciona</button>
+      <button class="docs-tab" data-tab="faq" role="tab" aria-selected="false">Perguntas frequentes</button>
+    </nav>
+
+    <main class="docs-content">
+      <section id="tab-overview" class="docs-panel active">
+        <h2>O que é</h2>
+        <p>
+          O SNES ROM Forge Web pega várias ROMs de Super Nintendo (LoROM ou HiROM) e monta
+          uma única imagem <code>.bin</code> pronta pra gravar numa memória flash de
+          multicart — do jeito que uma placa com PIC de troca de jogo por reset espera.
+        </p>
+        <p>
+          Tudo roda <strong>dentro do seu navegador</strong>. Nenhum arquivo é enviado pra
+          servidor nenhum: a leitura da ROM, a análise, a correção de checksum e o merge
+          final acontecem inteiramente no seu computador, em JavaScript.
+        </p>
+
+        <h2>O que ele faz</h2>
+        <ul class="docs-list">
+          <li>Detecta e remove o header SMC de 512 bytes, quando existe.</li>
+          <li>Detecta automaticamente se cada ROM é LoROM ou HiROM.</li>
+          <li>Corrige o checksum interno de cada ROM (comum em traduções/hacks).</li>
+          <li>
+            Calcula o tamanho de slot certo pra bater com uma placa PIC de 2 linhas de
+            endereço, sem deixar nenhuma posição sem jogo atribuído.
+          </li>
+          <li>Busca automaticamente a capa de cada jogo quando há internet.</li>
+        </ul>
+
+        <p class="docs-links">
+          Código-fonte no
+          <a href="https://github.com/ramonxxl/SNES-ROM-Forge-Web" target="_blank" rel="noopener">GitHub</a>.
+        </p>
+      </section>
+
+      <section id="tab-usage" class="docs-panel">
+        <h2>Passo a passo</h2>
+        <ol class="docs-steps">
+          <li>
+            <strong>Importe as ROMs.</strong> Arraste os arquivos (<code>.sfc</code>,
+            <code>.smc</code> ou <code>.bin</code>) pra área pontilhada, ou clique nela pra
+            escolher pelo seletor de arquivos.
+          </li>
+          <li>
+            <strong>Confira os cards.</strong> Cada jogo importado vira um card com a capa
+            (se achada) e quatro informações:
+            <ul class="docs-list">
+              <li><span class="badge" style="background:var(--accent-blue)">Mapping</span> — LoROM ou HiROM detectado.</li>
+              <li><span class="badge" style="background:var(--accent-orange)">Tamanho</span> — tamanho real do arquivo.</li>
+              <li><span class="badge" style="background:var(--accent-gray)">Header SMC</span> — se um header de copiadora de 512 bytes foi removido.</li>
+              <li><span class="badge" style="background:var(--accent-green)">Checksum</span> — “Válido” se já estava correto, “Corrigido” se precisou ajustar.</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Reordene ou remova, se precisar.</strong> A seta <code>⇄</code> entre dois
+            cards troca a posição deles; o <code>✕</code> no canto do card remove aquela ROM.
+            A ordem dos cards define a ordem dos jogos na imagem final.
+          </li>
+          <li>
+            <strong>Escolha a capacidade da flash.</strong> Clique no ⚙️ na barra lateral e
+            selecione o chip que você vai gravar (o padrão é a 29L3211 de 4 MB).
+          </li>
+          <li>
+            <strong>Gere o BIN.</strong> Clique no botão laranja (↻). Se tudo estiver certo,
+            o navegador vai pedir onde salvar o arquivo (ou baixar automaticamente, dependendo
+            do navegador) — pronto pra gravar na flash.
+          </li>
+        </ol>
+
+        <p class="docs-note">
+          <strong>Nada sai do seu computador:</strong> a única chamada de rede que a página
+          faz é a busca opcional de capa (em <code>raw.githubusercontent.com</code>); os
+          arquivos das ROMs em si nunca são enviados a lugar nenhum.
+        </p>
+      </section>
+
+      <section id="tab-how-it-works" class="docs-panel">
+        <h2>Por que os jogos não ficam sempre do mesmo tamanho</h2>
+        <p>
+          Multicarts baseados num PIC de troca-por-reset costumam ligar 1 ou 2 saídas do
+          microcontrolador direto nas linhas de endereço mais altas da flash. Com 2 linhas,
+          só existem <strong>4 combinações possíveis</strong> — ou seja, 4 “posições” fixas
+          na flash, cada uma do mesmo tamanho (capacidade da flash ÷ 4).
+        </p>
+        <p>
+          O SNES ROM Forge calcula, a partir de quantos jogos você importou, quantas dessas
+          posições usar e qual o tamanho de slot correspondente:
+        </p>
+
+        <div class="docs-diagram" aria-hidden="true">
+          <div class="docs-diagram__row">
+            <div class="docs-diagram__slot" style="flex:1">4 jogos → slot de 1 MB cada</div>
+            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+          </div>
+          <div class="docs-diagram__row">
+            <div class="docs-diagram__slot" style="flex:2">2 jogos → slot de 2 MB cada</div>
+            <div class="docs-diagram__slot" style="flex:2">2 MB</div>
+          </div>
+          <div class="docs-diagram__row">
+            <div class="docs-diagram__slot" style="flex:2">3 jogos → um deles se repete</div>
+            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+            <div class="docs-diagram__slot" style="flex:1">1 MB</div>
+          </div>
+        </div>
+
+        <h2>Por que uma ROM às vezes se repete inteira</h2>
+        <p>
+          Se você importa 3 jogos, mas só existem 4 posições possíveis, sobraria uma posição
+          sem nenhum jogo atribuído. Deixar essa posição em branco (só <code>0xFF</code>)
+          seria perigoso: se o PIC algum dia parar exatamente ali, o SNES tentaria bootar de
+          flash vazia e travaria. Por isso, o app repete uma das ROMs inteira (cabeçalho e
+          tudo) pra ocupar a posição extra — toda combinação de endereço sempre encontra um
+          jogo válido.
+        </p>
+
+        <h2>Checksum</h2>
+        <p>
+          Cada jogo mantém o <strong>próprio</strong> checksum interno corrigido, no offset
+          padrão do SNES (<code>0x7FDE</code> pra LoROM, <code>0xFFDE</code> pra HiROM). Não
+          existe (nem faz sentido gerar) um checksum “global” pra imagem final — o SNES só
+          lê o checksum do jogo que está ativo naquele momento.
+        </p>
+      </section>
+
+      <section id="tab-faq" class="docs-panel">
+        <h2>Perguntas frequentes</h2>
+
+        <h3>Por que a capa de um jogo não aparece?</h3>
+        <p>
+          A busca usa o nome do arquivo (e o título interno do cabeçalho) pra procurar numa
+          base de capas pública. Se o nome não bater exatamente com o nome oficial completo
+          do jogo (ex: “Contra III” em vez de “Contra III - The Alien Wars”), a busca não
+          acha — o card simplesmente fica com um banner colorido no lugar. Isso é esperado,
+          não é um erro.
+        </p>
+
+        <h3>Por que aparece “Corrigido” em vez de “Válido” no checksum?</h3>
+        <p>
+          Muitas ROMs (principalmente traduzidas ou com hack aplicado) ficam com o checksum
+          interno desatualizado. O app corrige automaticamente antes do merge — “Corrigido”
+          só avisa que aquele ajuste foi necessário, não indica problema no arquivo final.
+        </p>
+
+        <h3>Por que meu merge foi bloqueado?</h3>
+        <p>O app impede três situações:</p>
+        <ul class="docs-list">
+          <li>Misturar ROMs LoROM com HiROM no mesmo merge.</li>
+          <li>Uma ROM que não teve o mapeamento identificado (arquivo corrompido/inválido).</li>
+          <li>ROM(s) maior(es) do que o slot calculado pra elas, ou soma dos slots maior que a capacidade da flash escolhida.</li>
+        </ul>
+
+        <h3>Preciso de internet pra usar?</h3>
+        <p>
+          Não. Internet só é usada pra tentar buscar a capa dos jogos. Detecção, checksum,
+          cálculo de slot e geração do <code>.bin</code> funcionam 100% offline.
+        </p>
+
+        <h3>Meus arquivos de ROM saem do meu computador?</h3>
+        <p>
+          Não. A página inteira roda no seu navegador; não há upload nem servidor por trás.
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="src/docsTabs.js"></script>
+  </body>
+</html>
