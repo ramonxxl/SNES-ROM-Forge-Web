@@ -36,7 +36,47 @@ body {
 
 #app {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+}
+
+.topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar__title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.topbar__flash {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar__flash-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.topbar__flash select {
+  width: auto;
+  min-width: 220px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
 }
 
 .left-column {
@@ -44,20 +84,77 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  padding: 0 4px;
+}
+
+.section-title {
+  flex: 0 0 auto;
+  margin: 10px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
 }
 
 .cards-scroll {
   flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .cards-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 14px;
   padding: 4px;
+}
+
+.occupancy {
+  flex: 0 0 auto;
+  margin: 4px 4px 8px;
+}
+
+.occupancy__header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.occupancy__value {
+  font-family: Consolas, monospace;
+}
+
+.occupancy__track {
+  display: flex;
+  height: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.occupancy__fill-rom,
+.occupancy__fill-padding {
   height: 100%;
+  transition: width 0.2s ease;
+}
+
+.occupancy__fill-rom {
+  background: var(--accent-green);
+}
+
+.occupancy__fill-padding {
+  background: var(--accent-orange);
+}
+
+.occupancy__track--over .occupancy__fill-rom,
+.occupancy__track--over .occupancy__fill-padding {
+  background: var(--accent-red);
 }
 
 .log {
@@ -102,10 +199,6 @@ body {
   outline: 2px solid var(--text);
 }
 
-.icon-button.blue {
-  background: var(--accent-blue);
-}
-
 .icon-button.orange {
   background: var(--accent-orange);
 }
@@ -128,6 +221,11 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding-bottom: 10px;
+  cursor: grab;
+}
+
+.rom-card--dragging {
+  opacity: 0.4;
 }
 
 .rom-card__banner {
@@ -223,46 +321,6 @@ body {
   font-size: 14px;
 }
 
-/* --- Swap arrow --- */
-
-.swap-button {
-  flex: 0 0 auto;
-  align-self: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 19px;
-  cursor: pointer;
-}
-
-.swap-button:hover {
-  color: var(--text);
-}
-
-/* --- Settings dialog --- */
-
-dialog {
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-  min-width: 320px;
-}
-
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.section-label {
-  color: var(--text-muted);
-  font-weight: 600;
-  display: block;
-  margin-bottom: 8px;
-}
-
 select {
   width: 100%;
   background: var(--bg-card);
@@ -271,25 +329,4 @@ select {
   padding: 6px 8px;
   color: var(--text);
   font-size: 13px;
-}
-
-.dialog-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.dialog-buttons button {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 6px;
-  padding: 6px 14px;
-  cursor: pointer;
-}
-
-.dialog-buttons button.primary {
-  background: var(--accent-blue);
-  border: none;
 }

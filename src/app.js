@@ -3,16 +3,19 @@
  */
 
 import { SNESRom } from "./core/rom.js";
-import { merge } from "./core/merger.js";
+import { merge, resolveSlotSizes } from "./core/merger.js";
 import { ValidationError } from "./core/validator.js";
-import { DEFAULT_FLASH_PROFILE } from "./devices/flashProfiles.js";
+import { DEFAULT_FLASH_PROFILE, FLASH_PROFILES } from "./devices/flashProfiles.js";
 import { createRomCard, setCardBoxart } from "./ui/romCard.js";
 import { createDropZone } from "./ui/dropZone.js";
-import { openSettingsDialog } from "./ui/settingsDialog.js";
 import { buildCandidateFilenames, fetchBoxart } from "./ui/boxart.js";
 
 function formatSize(sizeBytes) {
   return `${sizeBytes} bytes (${(sizeBytes / 1024).toFixed(0)} KB)`;
+}
+
+function formatMB(sizeBytes) {
+  return `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 const DOWNLOAD_ICON_SVG = `
@@ -40,6 +43,7 @@ export class App {
     this.root = root;
     this.roms = [];
     this.flashProfile = DEFAULT_FLASH_PROFILE;
+    this._dragIndex = null;
 
     this._buildLayout();
   }
@@ -50,8 +54,18 @@ export class App {
     const app = document.createElement("div");
     app.id = "app";
 
+    app.appendChild(this._buildTopbar());
+
+    const main = document.createElement("div");
+    main.className = "main";
+
     const leftColumn = document.createElement("div");
     leftColumn.className = "left-column";
+
+    const sectionTitle = document.createElement("h2");
+    sectionTitle.className = "section-title";
+    sectionTitle.textContent = "ROMs selecionadas";
+    leftColumn.appendChild(sectionTitle);
 
     this.cardsScroll = document.createElement("div");
     this.cardsScroll.className = "cards-scroll";
@@ -61,21 +75,16 @@ export class App {
     this.cardsScroll.appendChild(this.cardsRow);
     leftColumn.appendChild(this.cardsScroll);
 
+    leftColumn.appendChild(this._buildOccupancyBar());
+
     this.logEl = document.createElement("div");
     this.logEl.className = "log";
     leftColumn.appendChild(this.logEl);
 
-    app.appendChild(leftColumn);
+    main.appendChild(leftColumn);
 
     const sidebar = document.createElement("div");
     sidebar.className = "sidebar";
-
-    const settingsButton = document.createElement("button");
-    settingsButton.className = "icon-button blue";
-    settingsButton.title = "Configurações";
-    settingsButton.textContent = "⚙";
-    settingsButton.addEventListener("click", () => this._onOpenSettings());
-    sidebar.appendChild(settingsButton);
 
     const generateButton = document.createElement("button");
     generateButton.className = "icon-button orange";
@@ -100,11 +109,111 @@ export class App {
     helpLink.rel = "noopener";
     sidebar.appendChild(helpLink);
 
-    app.appendChild(sidebar);
+    main.appendChild(sidebar);
+    app.appendChild(main);
 
     this.root.appendChild(app);
 
     this._rebuildCards();
+  }
+
+  _buildTopbar() {
+    const topbar = document.createElement("div");
+    topbar.className = "topbar";
+
+    const title = document.createElement("div");
+    title.className = "topbar__title";
+    title.textContent = "SNES ROM Forge";
+    topbar.appendChild(title);
+
+    const flashControl = document.createElement("div");
+    flashControl.className = "topbar__flash";
+
+    const flashLabel = document.createElement("label");
+    flashLabel.className = "topbar__flash-label";
+    flashLabel.textContent = "Capacidade da flash";
+    flashLabel.htmlFor = "flash-profile-select";
+    flashControl.appendChild(flashLabel);
+
+    const flashSelect = document.createElement("select");
+    flashSelect.id = "flash-profile-select";
+    FLASH_PROFILES.forEach((profile, index) => {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = profile.name;
+      if (profile.name === this.flashProfile.name) option.selected = true;
+      flashSelect.appendChild(option);
+    });
+    flashSelect.addEventListener("change", () => {
+      this.flashProfile = FLASH_PROFILES[Number(flashSelect.value)];
+      this.log(`Flash selecionada: ${this.flashProfile.name}.`);
+      this._updateOccupancy();
+    });
+    flashControl.appendChild(flashSelect);
+
+    topbar.appendChild(flashControl);
+    return topbar;
+  }
+
+  _buildOccupancyBar() {
+    const occupancy = document.createElement("div");
+    occupancy.className = "occupancy";
+
+    const header = document.createElement("div");
+    header.className = "occupancy__header";
+
+    const label = document.createElement("span");
+    label.textContent = "Ocupação da flash";
+    header.appendChild(label);
+
+    this.occupancyValueEl = document.createElement("span");
+    this.occupancyValueEl.className = "occupancy__value";
+    header.appendChild(this.occupancyValueEl);
+
+    occupancy.appendChild(header);
+
+    this.occupancyTrackEl = document.createElement("div");
+    this.occupancyTrackEl.className = "occupancy__track";
+
+    this.occupancyRomFillEl = document.createElement("div");
+    this.occupancyRomFillEl.className = "occupancy__fill-rom";
+    this.occupancyTrackEl.appendChild(this.occupancyRomFillEl);
+
+    this.occupancyPaddingFillEl = document.createElement("div");
+    this.occupancyPaddingFillEl.className = "occupancy__fill-padding";
+    this.occupancyTrackEl.appendChild(this.occupancyPaddingFillEl);
+
+    occupancy.appendChild(this.occupancyTrackEl);
+    return occupancy;
+  }
+
+  /**
+   * O quanto vai pra flash (slotBytes) é maior que a soma dos arquivos de ROM
+   * (rawRomBytes): slots são arredondados pra potência de 2 e, quando sobra
+   * posição de endereço na placa, uma ROM se repete pra preenchê-la (ver
+   * resolveSlotSizes em merger.js). Mostra os dois valores separados pra não
+   * parecer que a flash "encheu" só com os arquivos importados.
+   */
+  _updateOccupancy() {
+    const capacity = this.flashProfile.capacityBytes;
+    const rawRomBytes = this.roms.reduce((total, rom) => total + rom.romSizeBytes, 0);
+    const slotBytes = resolveSlotSizes(this.roms, capacity).reduce((a, b) => a + b, 0);
+    const paddingBytes = slotBytes - rawRomBytes;
+    const over = slotBytes > capacity;
+
+    const visibleRatio = capacity > 0 ? Math.min(slotBytes / capacity, 1) : 0;
+    const romShare = slotBytes > 0 ? rawRomBytes / slotBytes : 0;
+    const paddingShare = slotBytes > 0 ? paddingBytes / slotBytes : 0;
+
+    this.occupancyRomFillEl.style.width = `${romShare * visibleRatio * 100}%`;
+    this.occupancyPaddingFillEl.style.width = `${paddingShare * visibleRatio * 100}%`;
+    this.occupancyTrackEl.classList.toggle("occupancy__track--over", over);
+
+    const breakdown = `${formatMB(rawRomBytes)} de ROMs + ${formatMB(paddingBytes)} de alinhamento`;
+    const total = over
+      ? `${formatMB(slotBytes)} / ${formatMB(capacity)} (excede em ${formatMB(slotBytes - capacity)})`
+      : `${formatMB(slotBytes)} / ${formatMB(capacity)} (${Math.round((slotBytes / capacity) * 100)}%)`;
+    this.occupancyValueEl.textContent = `${breakdown} = ${total}`;
   }
 
   log(text) {
@@ -117,21 +226,36 @@ export class App {
 
     this.roms.forEach((rom, index) => {
       const cardHandle = createRomCard(rom, () => this._onRemoveRom(index));
-      this.cardsRow.appendChild(cardHandle.element);
-      this._fetchBoxartFor(rom, cardHandle);
+      const card = cardHandle.element;
+      card.draggable = true;
 
-      if (index < this.roms.length - 1) {
-        const swapButton = document.createElement("button");
-        swapButton.className = "swap-button";
-        swapButton.type = "button";
-        swapButton.textContent = "⇄";
-        swapButton.addEventListener("click", () => this._onSwapRoms(index, index + 1));
-        this.cardsRow.appendChild(swapButton);
-      }
+      card.addEventListener("dragstart", (event) => {
+        this._dragIndex = index;
+        card.classList.add("rom-card--dragging");
+        event.dataTransfer.effectAllowed = "move";
+      });
+      card.addEventListener("dragend", () => {
+        card.classList.remove("rom-card--dragging");
+        this._dragIndex = null;
+      });
+      card.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      });
+      card.addEventListener("drop", (event) => {
+        event.preventDefault();
+        if (this._dragIndex === null || this._dragIndex === index) return;
+        this._onReorderRoms(this._dragIndex, index);
+      });
+
+      this.cardsRow.appendChild(card);
+      this._fetchBoxartFor(rom, cardHandle);
     });
 
     const dropZone = createDropZone((files) => this._onFilesSelected(files));
     this.cardsRow.appendChild(dropZone);
+
+    this._updateOccupancy();
   }
 
   async _fetchBoxartFor(rom, cardHandle) {
@@ -159,8 +283,9 @@ export class App {
     this._rebuildCards();
   }
 
-  _onSwapRoms(i, j) {
-    [this.roms[i], this.roms[j]] = [this.roms[j], this.roms[i]];
+  _onReorderRoms(fromIndex, toIndex) {
+    const [rom] = this.roms.splice(fromIndex, 1);
+    this.roms.splice(toIndex, 0, rom);
     this._rebuildCards();
   }
 
@@ -170,14 +295,6 @@ export class App {
     this.roms = [];
     this.log("Todas as ROMs foram removidas.");
     this._rebuildCards();
-  }
-
-  async _onOpenSettings() {
-    const chosen = await openSettingsDialog(this.flashProfile);
-    if (chosen) {
-      this.flashProfile = chosen;
-      this.log(`Flash selecionada: ${chosen.name}.`);
-    }
   }
 
   async _onGenerateBin() {
